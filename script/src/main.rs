@@ -58,7 +58,7 @@ fn main() {
 
     let (pk1, vk1) = client.setup(KECCAK_PROVE_ELF);
     // Generate the fibonacci proofs.
-    let proof_1 = tracing::info_span!("generate fibonacci proof n=10").in_scope(|| {
+    let proof_1 = tracing::info_span!("generate KECCAK_PROVE proof").in_scope(|| {
         let mut stdin = SP1Stdin::new();
         stdin.write(&acc);
         client
@@ -81,20 +81,21 @@ fn main() {
     let verify = |times: usize| {
         let vk1 = vk1.clone();
         let proof_1 = proof_1.clone();
-        tracing::info_span!("execute keccak verify {times} times").in_scope(|| {
-            let mut stdin = SP1Stdin::new();
-            let vks = (0..times).map(|_| vk1.hash_u32()).collect::<Vec<_>>();
-            let public_values: Vec<[u8; 32]> = (0..times)
-                .map(|_| proof_1.public_values.hash().try_into().unwrap())
-                .collect();
-            stdin.write(&vks);
-            stdin.write(&public_values);
-            let SP1Proof::Compressed(proof) = proof_1.proof else {
-                panic!()
-            };
-            for _ in 0..times {
-                stdin.write_proof(*proof.clone(), vk1.vk.clone());
-            }
+
+        let mut stdin = SP1Stdin::new();
+        let vks = (0..times).map(|_| vk1.hash_u32()).collect::<Vec<_>>();
+        let public_values: Vec<[u8; 32]> = (0..times)
+            .map(|_| proof_1.public_values.hash().try_into().unwrap())
+            .collect();
+        stdin.write(&vks);
+        stdin.write(&public_values);
+        let SP1Proof::Compressed(proof) = proof_1.proof else {
+            panic!()
+        };
+        for _ in 0..times {
+            stdin.write_proof(*proof.clone(), vk1.vk.clone());
+        }
+        tracing::info_span!("execute keccak verify times", times).in_scope(|| {
             let (_, execution_report) = client
                 .execute(KECCAK_VERIFY_ELF, &stdin)
                 .run()
@@ -104,6 +105,16 @@ fn main() {
                 "Executed KECCAK_VERIFY_ELF {times} times with {} cycles",
                 execution_report.total_instruction_count() + execution_report.total_syscall_count()
             );
+        });
+
+        tracing::info_span!("generate keccak verify proof", times).in_scope(|| {
+            let (pk, _) = client.setup(KECCAK_VERIFY_ELF);
+
+            client
+                .prove(&pk, &stdin)
+                .compressed()
+                .run()
+                .expect("proving failed")
         });
     };
     verify(1);
