@@ -1,0 +1,18 @@
+[package]
+version = "0.1.0"
+name = "keccak-script"
+edition = "2021"
+
+
+[dependencies]
+sp1-sdk = "4.0.1"
+serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
+serde = { version = "1.0.200", default-features = false, features = ["derive"] }
+tracing = "0.1.41"
+hex = "0.4.3"
+dotenv = "0.15.0"
+alloy-rpc-types = { version = "0.9.2" }
+bytemuck = "1.21.0"
+
+[build-dependencies]
+sp1-build = "4.0.1"

@@ -1,0 +1,11 @@
+[package]
+version = "0.1.0"
+name = "keccak-prove-program"
+edition = "2021"
+
+[dependencies]
+sp1-zkvm = "4.0.1"
+alloy-rpc-types = { version = "0.9.2" }
+
+[patch.crates-io]
+tiny-keccak = { git = "https://github.com/sp1-patches/tiny-keccak", branch = "patch-v2.0.2" }

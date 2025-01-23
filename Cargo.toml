@@ -1,0 +1,8 @@
+[workspace]
+members = [
+    "program-keccak-prove",
+    "program-native-keccak-prove",
+    "program-keccak-verify",
+    "script",
+]
+resolver = "2"
